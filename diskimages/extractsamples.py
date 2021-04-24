@@ -1,6 +1,7 @@
-# This will extract the data from a mirage disk image (original, not hfe)
+# This will diskimages the data from a mirage disk image (original, not hfe)
 # and write it out as 6 wavesample files. They are raw pcm data. Format is:
-# mono, unsigned 8 bit, little-endian, 32000 Hz sample rate.
+# mono, unsigned 8 bit, little-endian, 29411 Hz sample rate
+# (depending on how sampled).
 import sys
 import os.path
 
@@ -28,7 +29,8 @@ def extract_wavesamples(filename):
         # create a new byte array containing correct data (64kb chunk)
         offset = track * track_length
         data = bytearray(mirage_data[offset:offset + sample_size])
-        wavesample = remove_short_sectors(data)
+        print(f"***** processing {name} *****")
+        wavesample = collapse_wave_data(data)
         write_wave_sample(wavesample, name)
 
 # each block of data includes the wavesample data plus 512 byte chunks
@@ -36,7 +38,7 @@ def extract_wavesamples(filename):
 # data, returning just the wavesample data (64kb).
 
 
-def remove_short_sectors(samples):
+def collapse_wave_data(samples):
     clean_wavesample = bytearray(66560)
     wave_data = 5120
     skip_data = 512
@@ -52,9 +54,9 @@ def remove_short_sectors(samples):
     # skip first 1024 bytes of parameter data
     return clean_wavesample[1024:66560]
 
-# Write a 64kb wave file. File is mono, 8bit unsigned PCM at 32KHz. Create
-# a proper wav header for easy import into audio software. Or be lazy and
-# give raw.
+# Write a 64kb wave file. File is mono, 8bit unsigned PCM. Sample rate is unknown, but
+# default is 29411Hz, so the sample is about 2 seconds long. To get the actual sample rate,
+# you need to know how to read the parameter data from the disk and what it means.
 
 
 def write_wave_sample(samples, name):
