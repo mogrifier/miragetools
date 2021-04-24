@@ -19,36 +19,17 @@ def extract_wavesamples(filename):
     # calculate offset and remove short sectors
     # lower half wavesample 1, starts at sector 2 (skips 0 and 1)
     track_length = 5632
-    offset = 2 * track_length
-    # create a new byte array containing what you need
-    data = bytearray(mirage_data[offset:offset + sample_size])
-    wavesample = remove_short_sectors(data)
-    write_wave_sample(wavesample, name_stub + "_lh1.wav")
+    # track start number for samples
+    sample_metadata = {name_stub + "_lh1.wav": 2, name_stub + "_lh2.wav": 15,
+                       name_stub + "_lh3.wav": 28, name_stub + "_uh1.wav": 41,
+                       name_stub + "_uh2.wav": 54, name_stub + "_uh3.wav": 67}
 
-    offset = 15 * track_length
-    data = bytearray(mirage_data[offset:offset + sample_size])
-    wavesample = remove_short_sectors(data)
-    write_wave_sample(wavesample, name_stub + "_lh2.wav")
-
-    offset = 28 * track_length
-    data = bytearray(mirage_data[offset:offset + sample_size])
-    wavesample = remove_short_sectors(data)
-    write_wave_sample(wavesample, name_stub + "_lh3.wav")
-
-    offset = 41 * track_length
-    data = bytearray(mirage_data[offset:offset + sample_size])
-    wavesample = remove_short_sectors(data)
-    write_wave_sample(wavesample, name_stub + "_uh1.wav")
-
-    offset = 54 * track_length
-    data = bytearray(mirage_data[offset:offset + sample_size])
-    wavesample = remove_short_sectors(data)
-    write_wave_sample(wavesample, name_stub + "_uh2.wav")
-
-    offset = 67 * track_length
-    data = bytearray(mirage_data[offset:offset + sample_size])
-    wavesample = remove_short_sectors(data)
-    write_wave_sample(wavesample, name_stub + "_uh3.wav")
+    for name, track in sample_metadata.items():
+        # create a new byte array containing correct data (64kb chunk)
+        offset = track * track_length
+        data = bytearray(mirage_data[offset:offset + sample_size])
+        wavesample = remove_short_sectors(data)
+        write_wave_sample(wavesample, name)
 
 # each block of data includes the wavesample data plus 512 byte chunks
 # interspersed between mirage disk tracks. This will remove the extra
