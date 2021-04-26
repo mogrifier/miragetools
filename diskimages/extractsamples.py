@@ -21,9 +21,9 @@ def extract_wavesamples(filename):
     # lower half wavesample 1, starts at sector 2 (skips 0 and 1)
     track_length = 5632
     # track start number for samples
-    sample_metadata = {name_stub + "_lh1.wav": 2, name_stub + "_lh2.wav": 15,
-                       name_stub + "_lh3.wav": 28, name_stub + "_uh1.wav": 41,
-                       name_stub + "_uh2.wav": 54, name_stub + "_uh3.wav": 67}
+    sample_metadata = {name_stub + "_lh1.wav": 2, name_stub + "_uh1.wav": 15,
+                       name_stub + "_lh2.wav": 28, name_stub + "_uh2.wav": 41,
+                       name_stub + "_lh3.wav": 54, name_stub + "_uh3.wav": 67}
 
     for name, track in sample_metadata.items():
         # create a new byte array containing correct data (64kb chunk)

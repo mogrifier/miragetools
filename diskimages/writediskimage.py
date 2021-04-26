@@ -9,8 +9,8 @@ import os.path
 
 
 def create_disk_image(sample_source, output_file):
-    template = read_disk_image()
-    dummy = create_dummy_data()
+    template = read_template_disk_image()
+    new_wavesamples = read_sample_source(sample_source)
     # copy the template byte data to the new disk image
     new_image = bytearray(len(template))
     new_image[0:len(template)] = template[0:len(template)]
@@ -23,25 +23,24 @@ def create_disk_image(sample_source, output_file):
     sample_metadata = {2, 15, 28, 41, 54, 67}
     # each wavesample start at the given track PLUS 1024 bytes
 
-    # first sector is special
-    position = 2 * track_length
-    new_image[position + 1024:position + 5120] = dummy[0:4096]
-    position = position + 5120
-    new_image[position:position + 512] = template[position:position + 512]
-
     # write 78 sectors worth of data (6 * 64KB) into the 5120 byte slots in the template
     for count in range(6):
         for x in range(13):
             track = (count * 13) + x + 2
             position = track * track_length
+            wavesample_position = count * 65536 + x * 5120
             if x == 0:
-                # skip 1024 and copy 4096
-                new_image[position + 1024:position + 5120] = dummy[0:4096]
+                # skip 1024 and copy 4096 for first sector of each sample.
+                wavesample_position = count * 65536
+                new_image[position + 1024:position + 5120] = \
+                    new_wavesamples[wavesample_position:wavesample_position + 4096]
             else:
-                new_image[position:position + 5120] = dummy[0:5120]
-
+                wavesample_position = count * 65536 + 4096 + (x - 1) * 5120
+                new_image[position:position + 5120] = \
+                    new_wavesamples[wavesample_position:wavesample_position + 5120]
+        print(f'info: wrote wave sample {count + 1}')
     # save the new disk image
-    write_wave_sample(new_image, output_file)
+    write_wave_sample(new_image, output_file + ".img")
 
 # This file needs to be written to a floppy disk for use in the Mirage, or
 # converted to a format used with a USB drive.
@@ -58,11 +57,18 @@ def write_wave_sample(samples, name):
 # initially.
 
 
-def read_disk_image():
-    disk_image_template = open(os.path.join(sys.path[0], 'FULLMELL'), 'rb')
+def read_template_disk_image():
+    disk_image_template = open(os.path.join(sys.path[0], 'MELSET1'), 'rb')
     mirage_data = bytearray(disk_image_template.read())
-    print(f'data read = {len(mirage_data)}.')
+    print(f'info: data read from template disk image = {len(mirage_data)}.')
     return mirage_data
+
+
+def read_sample_source(sample_file):
+    samples = open(os.path.join(sys.path[0], sample_file), 'rb')
+    data = bytearray(samples.read())
+    print(f'info: data read from sample source = {len(data)}.')
+    return data
 
 # Return a random byte array.
 
@@ -74,6 +80,17 @@ def create_dummy_data():
 
 if __name__ == '__main__':
     # read and pass file name argument
+    print('''
+    The sample source file must contain 6 64kb chunks of data, organized in this order:
+    lower half 1
+    upper half 1
+    lower half 2
+    upper half 2
+    lower half 3
+    upper half 3
+    
+    Of course you can load any data you like, any way you like, since not bound by Mirage sampling rules.
+    ''')
     if len(sys.argv) != 3:
         print("A sample source file name and output file name (for new disk image) is required. Exiting.")
         sys.exit(1)
