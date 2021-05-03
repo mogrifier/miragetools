@@ -2,10 +2,12 @@
 This utility will read a disk image file and using it as a template, create a
 new disk image loaded with arbitrary sample data. Ideally, the data would come
 from really good looping samples, like single cycle waveforms. The Mirage can
-use multisamples, so up to 8 waveforms for each block of 64kb can be used.
+use multisamples, so up to 8 waveforms for each block of 64KB can be used.
 '''
 import sys
 import os.path
+
+import utility
 
 
 def create_disk_image(sample_source, output_file):
@@ -40,17 +42,19 @@ def create_disk_image(sample_source, output_file):
                     new_wavesamples[wavesample_position:wavesample_position + 5120]
         print(f'info: wrote wave sample {count + 1}')
     # save the new disk image
-    write_wave_sample(new_image, output_file + ".img")
+    utility.write_file(new_image, output_file + ".img")
 
 # This file needs to be written to a floppy disk for use in the Mirage, or
 # converted to a format used with a USB drive.
 # name is the disk image file to write to.
-# samples are the 6 bytearrays (64kb each) being written into the image file template.
+# samples are the 6 bytearrays (64KB each) being written into the image file template.
 
 
 def write_wave_sample(samples, name):
     output = open(name, 'wb')
     output.write(samples)
+    output.close()
+    print(f'wrote file {name}')
 
 # Read the mirage disk for use as a template file. This is important since the disk should have the OS on it plus
 # the parameter data for the samples being written. Those can be changed later using the Mirage, but are needed
@@ -65,6 +69,7 @@ def read_template_disk_image():
 
 
 def read_sample_source(sample_file):
+    # sys.path[0] is where script is running
     samples = open(os.path.join(sys.path[0], sample_file), 'rb')
     data = bytearray(samples.read())
     print(f'info: data read from sample source = {len(data)}.')
@@ -74,14 +79,14 @@ def read_sample_source(sample_file):
 
 
 def create_dummy_data():
-    # just make a 64kb random data array
+    # just make a 64KB random data array
     return bytearray(os.urandom(65536))
 
 
 if __name__ == '__main__':
     # read and pass file name argument
     print('''
-    The sample source file must contain 6 64kb chunks of data, organized in this order:
+    The sample source file must contain 6 64KB chunks of data, organized in this order:
     lower half 1
     upper half 1
     lower half 2

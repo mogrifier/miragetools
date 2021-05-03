@@ -9,7 +9,7 @@ def extract_wavesamples(filename):
     print("processing file " + filename)
     name_stub = os.path.basename(filename)
     # create six separate arrays of binary data, each initially 72704 bytes.
-    # This contains the 64kb wavesample plus extra 512 byte sectors
+    # This contains the 64KB wavesample plus extra 512 byte sectors
     # and initial 1024 byte parameter data to be removed.
     mirage_disk = open(filename, 'rb')
     mirage_data = bytearray(mirage_disk.read())
@@ -26,7 +26,7 @@ def extract_wavesamples(filename):
                        name_stub + "_lh3.wav": 54, name_stub + "_uh3.wav": 67}
 
     for name, track in sample_metadata.items():
-        # create a new byte array containing correct data (64kb chunk)
+        # create a new byte array containing correct data (64KB chunk)
         offset = track * track_length
         data = bytearray(mirage_data[offset:offset + sample_size])
         print(f"***** processing {name} *****")
@@ -35,7 +35,7 @@ def extract_wavesamples(filename):
 
 # each block of data includes the wavesample data plus 512 byte chunks
 # interspersed between mirage disk tracks. This will remove the extra
-# data, returning just the wavesample data (64kb).
+# data, returning just the wavesample data (64KB).
 
 
 def collapse_wave_data(samples):
@@ -54,7 +54,7 @@ def collapse_wave_data(samples):
     # skip first 1024 bytes of parameter data
     return clean_wavesample[1024:66560]
 
-# Write a 64kb wave file. File is mono, 8bit unsigned PCM. Sample rate is unknown, but
+# Write a 64KB wave file. File is mono, 8bit unsigned PCM. Sample rate is unknown, but
 # default is 29411Hz, so the sample is about 2 seconds long. To get the actual sample rate,
 # you need to know how to read the parameter data from the disk and what it means.
 
