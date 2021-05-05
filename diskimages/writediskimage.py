@@ -44,6 +44,9 @@ def create_disk_image(sample_source, output_file):
     # save the new disk image
     utility.write_file(new_image, output_file + ".img")
 
+    # verify
+    utility.verify_image(new_image)
+
 # This file needs to be written to a floppy disk for use in the Mirage, or
 # converted to a format used with a USB drive.
 # name is the disk image file to write to.

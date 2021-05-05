@@ -5,6 +5,8 @@
 import sys
 import os.path
 
+import utility
+
 def extract_wavesamples(filename):
     print("processing file " + filename)
     name_stub = os.path.basename(filename)
@@ -30,29 +32,9 @@ def extract_wavesamples(filename):
         offset = track * track_length
         data = bytearray(mirage_data[offset:offset + sample_size])
         print(f"***** processing {name} *****")
-        wavesample = collapse_wave_data(data)
+        wavesample = utility.collapse_wave_data(data)
         write_wave_sample(wavesample, name)
 
-# each block of data includes the wavesample data plus 512 byte chunks
-# interspersed between mirage disk tracks. This will remove the extra
-# data, returning just the wavesample data (64KB).
-
-
-def collapse_wave_data(samples):
-    clean_wavesample = bytearray(66560)
-    wave_data = 5120
-    skip_data = 512
-    track_length = 5632
-
-    for start in range(13):
-        end = start * wave_data + wave_data
-        print(f"copying bytes {start * track_length}:{start * track_length + wave_data}")
-        print(f"to {start * wave_data}:{end}")
-        clean_wavesample[start * wave_data:end] = \
-            samples[start * track_length:start * track_length + wave_data]
-
-    # skip first 1024 bytes of parameter data
-    return clean_wavesample[1024:66560]
 
 # Write a 64KB wave file. File is mono, 8bit unsigned PCM. Sample rate is unknown, but
 # default is 29411Hz, so the sample is about 2 seconds long. To get the actual sample rate,

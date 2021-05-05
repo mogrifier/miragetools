@@ -30,6 +30,42 @@ def wavetable16_to_sample_source(table1, table2, table3, name):
     utility.write_file(output, name)
 
 
+
+# Convert 16 sample wavetables (16KB 8 bit files) to 6 * 64 chunks. Write
+# the output file.
+# Read in 3 files. Write each 1KB sample 4 times in a row.
+
+
+def wavetable16_to_4KB_sample_source(table1, table2, table3, name):
+    # table 1,2,3 are file names of 8bit wavetable files.
+    # name is the output file name
+    tables = [table1, table2, table3]
+    output = bytearray(6 * 65536)
+
+    index = 0
+    count = 0
+    for item in tables:
+        table = utility.read_file_bytes(item)
+        print(f'preprocessing {item}')
+        chunksize = 1024
+        #write each table twice (lower and upper half)
+        for x in range(2):
+            for j in range(16):
+                # write each 1KB sample four times.
+                for k in range(4):
+                    sample_start = j * chunksize
+                    sample = table[sample_start: sample_start + chunksize]
+                    index = j * 4 + k
+                    output_start = index * chunksize + count * 65536
+                    output[output_start:output_start + chunksize] = sample
+
+            count = count + 1
+
+    # will write to the disk_image directory. Should change this.
+    utility.write_file(output, name)
+
+
+
 if __name__ == '__main__':
-    wavetable16_to_sample_source("8bit-RRLYRQ5.WAV", "8bit-RRLYRQ6.WAV",
+    wavetable16_to_4KB_sample_source("8bit-RRLYRQ5.WAV", "8bit-RRLYRQ6.WAV",
                                  "8bit-RRLYRQ7.WAV", "rrlyrq-image.wav" )
