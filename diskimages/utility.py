@@ -6,6 +6,7 @@ import sys
 
 # For converting a 16 bit mono file in little-endian format to 8 bit.
 WAVHEADER = 44
+track_length = 5632
 
 # TODO Should test for presence of WAV header rather than assume one.
 # Flag could be used to determine if wav or raw output is desired.
@@ -67,7 +68,6 @@ def collapse_wave_data(samples):
     clean_wavesample = bytearray(66560)
     wave_data = 5120
     skip_data = 512
-    track_length = 5632
 
     for start in range(13):
         end = start * wave_data + wave_data

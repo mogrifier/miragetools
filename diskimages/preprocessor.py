@@ -65,7 +65,24 @@ def wavetable16_to_4KB_sample_source(table1, table2, table3, name):
     utility.write_file(output, name)
 
 
+def bulk_process_ppg_tables():
+
+    file_stub = "8bit-PPG_WA"
+    for x in range(12, 31, 3):
+
+        zero = ""
+        if x < 10:
+            zero = "0"
+        file1 = file_stub + zero + str(x) + ".wav"
+        file2 = file_stub + zero + str(x + 1) + ".wav"
+        file3 = file_stub + zero + str(x + 2) + ".wav"
+
+
+        wavetable16_to_4KB_sample_source(file1, file2, file3, "ppg" + str(x) + "-image.wav")
 
 if __name__ == '__main__':
-    wavetable16_to_4KB_sample_source("8bit-RRLYRQ5.WAV", "8bit-RRLYRQ6.WAV",
-                                 "8bit-RRLYRQ7.WAV", "rrlyrq-image.wav" )
+    bulk_process_ppg_tables()
+
+
+    #wavetable16_to_4KB_sample_source("8bit-RETRO_SP.WAV", "8bit-LIGHT_YE.WAV",
+    #                            "8bit-SYNTH_VO.WAV", "voices-image.wav" )

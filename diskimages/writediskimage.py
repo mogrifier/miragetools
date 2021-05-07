@@ -9,6 +9,8 @@ import os.path
 
 import utility
 
+TEMPLATE = 'wavesample_template.img'
+
 
 def create_disk_image(sample_source, output_file):
     template = read_template_disk_image()
@@ -65,7 +67,7 @@ def write_wave_sample(samples, name):
 
 
 def read_template_disk_image():
-    disk_image_template = open(os.path.join(sys.path[0], 'MELSET1'), 'rb')
+    disk_image_template = open(os.path.join(sys.path[0], TEMPLATE), 'rb')
     mirage_data = bytearray(disk_image_template.read())
     print(f'info: data read from template disk image = {len(mirage_data)}.')
     return mirage_data
@@ -99,8 +101,20 @@ if __name__ == '__main__':
     
     Of course you can load any data you like, any way you like, since not bound by Mirage sampling rules.
     ''')
-    if len(sys.argv) != 3:
+    if len(sys.argv) == 3:
+        create_disk_image(sys.argv[1], sys.argv[2])
+    elif len(sys.argv) == 2:
+        # my hack to process some ppg files; voices-image.wav voices
+        create_disk_image("ppg0-image.wav", "ppg0")
+        create_disk_image("ppg3-image.wav", "ppg3")
+        create_disk_image("ppg6-image.wav", "ppg6")
+        create_disk_image("ppg12-image.wav", "ppg12")
+        create_disk_image("ppg15-image.wav", "ppg15")
+        create_disk_image("ppg18-image.wav", "ppg18")
+        create_disk_image("ppg21-image.wav", "ppg21")
+        create_disk_image("ppg24-image.wav", "ppg24")
+        create_disk_image("ppg27-image.wav", "ppg27")
+
+    else:
         print("A sample source file name and output file name (for new disk image) is required. Exiting.")
         sys.exit(1)
-    else:
-        create_disk_image(sys.argv[1], sys.argv[2])
