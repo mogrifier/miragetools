@@ -3,15 +3,71 @@ import hashlib
 import os
 import sys
 
-
-# For converting a 16 bit mono file in little-endian format to 8 bit.
+# Global variables
 WAVHEADER = 44
-track_length = 5632
+TRACK_LENGTH = 5632
 
-# TODO Should test for presence of WAV header rather than assume one.
+
+# TODO Should check for presence of WAV header rather than assume one.
 # Flag could be used to determine if wav or raw output is desired.
 # Write WAV header if user wants one.
 # In the meantime, the Mirage only uses RAW data so that is what this provides.
+
+
+def remove_waveheader(data):
+    # return data (bytearray) without 44 byte header
+    return data[44: len(data)]
+
+
+def write_file(data, name):
+    output = open(name, 'wb')
+    output.write(data)
+    output.close()
+    print(f'wrote file {name}')
+
+
+# Read from the current working directory or an optional root directory.
+
+
+def read_file_bytes(sample_file, root):
+    if root is None:
+        samples = open(os.path.join(sys.path[0], sample_file), 'rb')
+        data = bytearray(samples.read())
+        print(f'info: data read from source file = {len(data)}.')
+        return data
+    else:
+        samples = open(os.path.join(root, sample_file), 'rb')
+        data = bytearray(samples.read())
+        print(f'info: data read from source file = {len(data)}.')
+        return data
+
+
+# Operates on bytearrays and converts 16 to 8 bit. This assumes little-endian byte order.
+# FIXME assumes a wav (riff) file header. Need to test for this instead.
+
+def convert_16_to_8bit(input_bytes):
+    input_length = len(input_bytes)
+    # length of 8 bit with no header.
+    eightbit_length = (int)((input_length - WAVHEADER) / 2)
+    converted = bytearray(eightbit_length)
+    # little-endian data means data is stored little end (LSB) first.
+    # Skip 44 byte wavheader and start on MSB (2nd byte)
+    index = 0
+    for x in range(45, input_length, 2):
+        # why 45? zero-based. skipping 0-43, then 44 (LSB). 45 is first MSB.
+        converted[index] = input_bytes[x]
+        index += 1
+    print(f'output file length = {len(converted)}')
+    return converted
+
+
+def convert_16bitfile_to_8bit(input_file):
+    input_bytes = read_file_bytes(input_file)
+    output = convert_16_to_8bit(input_bytes)
+    # write output to a new file
+    name_stub = os.path.basename(input_file)
+    write_file(output, "8bit-" + name_stub)
+
 
 def convert_16bitfile_folder_to_8bit(input_folder):
     # iterate the folder for .wav files and convert each
@@ -23,41 +79,6 @@ def convert_16bitfile_folder_to_8bit(input_folder):
         else:
             continue
 
-
-def convert_16bitfile_to_8bit(input_file):
-    input = read_file_bytes(input_file)
-    output = convert_16_to_8bit(input)
-    # write output to a new file
-    name_stub = os.path.basename(input_file)
-    write_file(output, "8bit-" + name_stub)
-
-def convert_16_to_8bit (input):
-    input_length = len(input)
-    # length of 8 bit with no header.
-    eightbit_length = (int)((input_length - WAVHEADER) / 2)
-    converted = bytearray(eightbit_length)
-    # little-endian data means data is stored little end (LSB) first.
-    # Skip 44 byte wavheader and start on MSB (2nd byte)
-    index = 0
-    for x in range(45, input_length, 2):
-        # why 45? zero-based. skipping 0-43, then 44 (LSB). 45 is first MSB.
-        converted[index] = input[x]
-        index += 1
-    print(f'output file length = {len(converted)}')
-    return converted
-
-def read_file_bytes(sample_file):
-    samples = open(os.path.join(sys.path[0], sample_file), 'rb')
-    data = bytearray(samples.read())
-    print(f'info: data read from source file = {len(data)}.')
-    return data
-
-
-def write_file(data, name):
-    output = open(name, 'wb')
-    output.write(data)
-    output.close()
-    print(f'wrote file {name}')
 
 # each block of data includes the wavesample data plus 512 byte chunks
 # interspersed between mirage disk tracks. This will remove the extra
@@ -71,10 +92,10 @@ def collapse_wave_data(samples):
 
     for start in range(13):
         end = start * wave_data + wave_data
-        print(f"copying bytes {start * track_length}:{start * track_length + wave_data}")
+        print(f"copying bytes {start * TRACK_LENGTH}:{start * TRACK_LENGTH + wave_data}")
         print(f"to {start * wave_data}:{end}")
         clean_wavesample[start * wave_data:end] = \
-            samples[start * track_length:start * track_length + wave_data]
+            samples[start * TRACK_LENGTH:start * TRACK_LENGTH + wave_data]
 
     # skip first 1024 bytes of parameter data
     return clean_wavesample[1024:66560]
@@ -104,6 +125,13 @@ def verify_image(data):
     lower2_md5 = hashlib.md5(lower2)
     print(f'second checksum = {lower2_md5.hexdigest()}')
 
+
+# Return a random byte array.
+
+
+def create_dummy_data():
+    # just make a 64KB random data array
+    return bytearray(os.urandom(65536))
 
 
 if __name__ == '__main__':
