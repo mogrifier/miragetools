@@ -1,6 +1,7 @@
 # Utility functions needed for audio manipulation
 import hashlib
 import os
+import struct
 import sys
 
 # Global variables
@@ -29,17 +30,36 @@ def write_file(data, name):
 # Read from the current working directory or an optional root directory.
 
 
-def read_file_bytes(sample_file, root):
+def read_file_bytes(sample_file, root=None):
     if root is None:
         samples = open(os.path.join(sys.path[0], sample_file), 'rb')
         data = bytearray(samples.read())
         print(f'info: data read from source file = {len(data)}.')
+        samples.close()
         return data
     else:
         samples = open(os.path.join(root, sample_file), 'rb')
         data = bytearray(samples.read())
         print(f'info: data read from source file = {len(data)}.')
+        samples.close()
         return data
+
+
+# Take a data stream consisting of 32 bit floats (audio data) and convert to 8 bit. Assuming little-endian data.
+
+
+def convert_32bf_to_8bit(input_bytes):
+    size = len(input_bytes)
+    # 32 bit floats are 4 byte values.
+    eight_bit = bytearray(int(size / 4))
+    index = 0
+    for i in range(0, size, 4):
+        # read 4 and unpack 4 bytes in little-endian order to a float
+        value = struct.unpack_from('<f',  input_bytes[i: i + 4])
+        # value is expected to be in range -1 to + 1. Convert to 0 - 255.
+        eight_bit[index] = int((value[0] + 1) / 2 * 255)
+        index += 1
+    return eight_bit
 
 
 # Operates on bytearrays and converts 16 to 8 bit. This assumes little-endian byte order.

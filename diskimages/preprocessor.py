@@ -35,6 +35,36 @@ def wavetable16_to_sample_source(table1, table2, table3, name):
 
 # Convert 16 sample wavetables (16KB 8 bit files) to 6 * 64 chunks. Write
 # the output file.
+# Read in 24 files. Write each 1KB sample. Load it up!
+# Inputs are the source directory and a output file name ending in .wav.
+# Data is raw PCM- no wave header.
+
+
+def wavetable16_to_1KB_sample_source(source, name):
+    # table 1,2,3 are file names of 8bit wavetable files.
+    # name is the output file name
+    count = len(os.listdir(source))
+    tables = os.listdir(source)[0:24]
+    if count > 24:
+        print(f"directory has {count} files. Only using first 24.")
+    output = bytearray(6 * 65536)
+    # read in 16KB chunks
+    chunksize = 16384
+    index = 0
+    for item in tables:
+        table = utility.read_file_bytes(item, source)
+        print(f'preprocessing {item}')
+        # write each table once
+        output_start = index * chunksize
+        output[output_start:output_start + chunksize] = table
+        index += 1
+
+    # will write to the disk_image directory. Should change this.
+    utility.write_file(output, name)
+
+
+# Convert 16 sample wavetables (16KB 8 bit files) to 6 * 64 chunks. Write
+# the output file.
 # Read in 3 files. Write each 1KB sample 4 times in a row.
 
 
@@ -108,6 +138,37 @@ def write_fairlight_directory_to_intermediate_wav(src_folder, image_name):
     utility.write_file(output, os.path.join("intermediate_wav",  image_name))
 
 
+def write_virus_directory_to_intermediate_wav(src_folder, image_name):
+    # get all file names in input directory. Use them all. Just stop when you run out.
+    source_files = os.listdir(src_folder)
+    print(source_files)
+    print(f'copying {len(source_files)} samples to image')
+    output = bytearray(6 * 65536)
+    index = 0
+    # write each 3 times so all 3 sounds are the same
+    for x in range(3):
+        for item in source_files:
+            sample = utility.read_file_bytes(item, src_folder)
+            print(f'preprocessing {item}')
+            chunksize = 2048
+            # write entire 2KB sample
+            output[index:index + chunksize] = sample[0:chunksize]
+            index += chunksize
+
+    # FIXME will write to proper wavsyn directory using config.ini
+    utility.write_file(output, os.path.join("intermediate_wav",  image_name))
+
+
+
+def bulk_process_virus():
+    root = "F:\\wavsyn\\virusT1\\Virus Classic Waveforms"
+    tables = os.listdir(root)
+    for file in tables:
+        data = utility.read_file_bytes(file, root)
+        #skip 100 byte header and convert
+        eights = utility.convert_32bf_to_8bit(data[100:])
+        utility.write_file(eights, (os.path.splitext(file)[0] + "_8bit.wav").replace(' ', '_'))
+
 
 
 def bulk_process_ppg_tables():
@@ -129,6 +190,20 @@ if __name__ == '__main__':
 
     # wavetable16_to_4KB_sample_source("8bit-RETRO_SP.WAV", "8bit-LIGHT_YE.WAV",
     #                            "8bit-SYNTH_VO.WAV", "voices-image.wav" )
+
+    #wavetable16_to_1KB_sample_source("G:\\wavsyn\\wavetables\\1st_24", "1st_24.wav")
+    #wavetable16_to_1KB_sample_source("G:\\wavsyn\\wavetables\\2nd_24", "2nd_24.wav")
+    #wavetable16_to_1KB_sample_source("G:\\wavsyn\\wavetables\\3rd_24", "3rd_24.wav")
+    #wavetable16_to_1KB_sample_source("G:\\wavsyn\\wavetables\\4th_24", "4th_24.wav")
+    wavetable16_to_1KB_sample_source("G:\\wavsyn\\wavetables\\5th24", "5th_24.wav")
+    exit(0)
+
+
+
+
+
+    write_virus_directory_to_intermediate_wav("F:\\wavsyn\\wavetables\\virus", "virus_ti.wav" )
+    exit(0)
 
     root_dir = "F:\\samples\\Fairlight CMI IIx Disks Image\\disks\\BIN\\IIx_disks\\New Voice Disks"
     source_folders = os.listdir(root_dir)

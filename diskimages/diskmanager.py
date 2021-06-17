@@ -38,7 +38,7 @@ class MirageDiskManager:
         # windows HOMEPATH is the default
         # read config file parameters needed
         config = configparser.ConfigParser()
-        config.read("settings" + os.path.sep + "config.ini")
+        config.read("C:\\Users\\eizde\\PycharmProjects\\pythonProject\\settings" + os.path.sep + "config.ini")
         # set variables
         if config['FILES']['HOME']:
             self.home = config['FILES']['HOME']
@@ -78,7 +78,7 @@ class MirageDiskManager:
     # settings, and global mirage config parameters.
 
     def create_disk_image(self, sample_source, output_file):
-        template = self.read_template_disk_image()
+        template = self.read_template_disk_image(self.fairlight_template)
         new_wavesamples = self.read_sample_source(sample_source)
         # copy the template byte data to the new disk image
         new_image = bytearray(len(template))
@@ -190,7 +190,15 @@ class MirageDiskManager:
 if __name__ == '__main__':
     # read and pass file name argument
 
+    mirage = MirageDiskManager()
+    mirage.create_disk_image("1st_24.wav", "1st_24")
+    mirage.create_disk_image("2nd_24.wav", "2nd_24")
+    mirage.create_disk_image("3rd_24.wav", "3rd_24")
+    mirage.create_disk_image("4th_24.wav", "4th_24")
+    mirage.create_disk_image("5th_24.wav", "5th_24")
     exit(0)
+    # mirage.create_disk_image("virus_ti.wav", "virus_ti.img")
+
 
     print('''
     The sample source file must contain 6 64KB chunks of data, organized in this order:
@@ -207,15 +215,11 @@ if __name__ == '__main__':
         create_disk_image(sys.argv[1], sys.argv[2])
     elif len(sys.argv) == 2:
         # my hack to process some ppg files; voices-image.wav voices
-        create_disk_image("ppg0-image.wav", "ppg0")
-        create_disk_image("ppg3-image.wav", "ppg3")
-        create_disk_image("ppg6-image.wav", "ppg6")
-        create_disk_image("ppg12-image.wav", "ppg12")
-        create_disk_image("ppg15-image.wav", "ppg15")
-        create_disk_image("ppg18-image.wav", "ppg18")
-        create_disk_image("ppg21-image.wav", "ppg21")
-        create_disk_image("ppg24-image.wav", "ppg24")
-        create_disk_image("ppg27-image.wav", "ppg27")
+        mirage.create_disk_image("1st_24.wav", "1st_24")
+        mirage.create_disk_image("2nd_24.wav", "2nd_24")
+        mirage.create_disk_image("3rd_24.wav", "3rd_24")
+        mirage.create_disk_image("4th_24.wav", "4th_24")
+        mirage.create_disk_image("5th_24.wav", "5th_24")
 
     else:
         path = Path(sys.argv[0])
